@@ -1,0 +1,9 @@
+{
+  "name": "roomcheck",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Apartment 1953 #101 weekly roomcheck checklist",
+  "dependencies": {
+    "@netlify/blobs": "^11.0.1"
+  }
+}
