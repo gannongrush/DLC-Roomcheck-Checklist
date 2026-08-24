@@ -426,8 +426,27 @@
   }
   .back-link:hover { color: var(--accent); }
 
-  .apartment-grid {
+  .community-section {
     margin-top: 30px;
+  }
+  .community-section + .community-section {
+    margin-top: 36px;
+  }
+
+  .community-title {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.76rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .apartment-grid {
+    margin-top: 16px;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
     gap: 16px;
@@ -480,6 +499,7 @@
   var APARTMENTS = {
     "1953-101": {
       name: "Apartment 1953 #101",
+      community: "The Traditions",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Gannon", "Nijel", "Seth", "Evan", "Ethan", "Matthew"],
       roommates: [
@@ -530,6 +550,7 @@
     },
     "1949-100": {
       name: "Apartment 1949 #100",
+      community: "The Traditions",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Ezra", "Ian", "Cage", "Lockwood", "Skyler", "Kevin"],
       roommates: [
@@ -580,6 +601,7 @@
     },
     "wind-drift": {
       name: "Wind Drift",
+      community: "Seagate",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Viv", "Linnea", "Maddy", "Roxie"],
       roommates: [
@@ -625,6 +647,7 @@
     },
     "sailfish": {
       name: "Sailfish",
+      community: "Seagate",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Logan", "Blake", "Manny"],
       roommates: [
@@ -760,12 +783,34 @@
   function renderHome() {
     document.title = "Roomcheck";
     var slugs = Object.keys(APARTMENTS);
-    var cards = slugs.map(function (slug) {
+
+    // Group apartments by their "community" field, preserving the order
+    // each community is first encountered in APARTMENTS. Apartments with
+    // no community set land in a catch-all "Other" section.
+    var groups = [];
+    var groupIndex = {};
+    slugs.forEach(function (slug) {
       var a = APARTMENTS[slug];
-      return '<a class="apartment-card" href="/' + encodeURIComponent(slug) + '">' +
-        "<h2>" + escapeHtml(a.name) + "</h2>" +
-        "<p>" + a.people.length + " roommates</p>" +
-      "</a>";
+      var community = a.community || "Other";
+      if (!(community in groupIndex)) {
+        groupIndex[community] = groups.length;
+        groups.push({ name: community, slugs: [] });
+      }
+      groups[groupIndex[community]].slugs.push(slug);
+    });
+
+    var sectionsHtml = groups.map(function (group) {
+      var cards = group.slugs.map(function (slug) {
+        var a = APARTMENTS[slug];
+        return '<a class="apartment-card" href="/' + encodeURIComponent(slug) + '">' +
+          "<h2>" + escapeHtml(a.name) + "</h2>" +
+          "<p>" + a.people.length + " roommates</p>" +
+        "</a>";
+      }).join("");
+      return '<section class="community-section">' +
+        '<h2 class="community-title">' + escapeHtml(group.name) + "</h2>" +
+        '<div class="apartment-grid">' + cards + "</div>" +
+      "</section>";
     }).join("");
 
     document.getElementById("wrap").innerHTML =
@@ -777,7 +822,7 @@
         "</div>" +
       "</header>" +
       COLOR_PICKER_HTML +
-      '<div class="apartment-grid">' + cards + "</div>" +
+      sectionsHtml +
       '<footer class="note">Don\u2019t see your apartment here? Ask whoever manages this site to add it.</footer>';
 
     initColorPicker();
