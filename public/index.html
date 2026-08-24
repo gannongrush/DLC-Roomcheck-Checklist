@@ -622,6 +622,53 @@
         }
       ],
       bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
+    },
+    "sailfish": {
+      name: "Sailfish",
+      tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
+      people: ["Logan", "Blake", "Manny"],
+      roommates: [
+        { room: "Front Bedroom", names: "Logan" },
+        { room: "Master Bedroom", names: "Blake & Manny" }
+      ],
+      areas: [
+        {
+          id: "common",
+          title: "Common Areas",
+          wide: true,
+          sub: "Kitchen, Living Room, Laundry Room & Patio \u2014 split into 3 jobs, one per person, balanced by effort so no one gets stuck with a heavy week while someone else gets an easy one. Rotates every time someone taps \u201cStart new week.\u201d",
+          rotationPeople: "all",
+          tasks: [
+            "Kitchen \u2014 dishes, counters & appliances: all dishes cleaned and put away; counters cleared, sprayed and wiped down with multi-surface cleaner; stove, refrigerator and microwave cleaned inside & out \u2014 multi-surface cleaner, then glass cleaner on appropriate surfaces",
+            "Floors & Living Room: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads; all personal items put away and furniture surfaces dusted with furniture polish and a cleaning cloth",
+            "Patio & Laundry Room/Trash: patio tidy and free of clutter, with no personal items stored in patio storage and no laundry hanging over the balcony or patio wall; washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+          ]
+        },
+        {
+          id: "front",
+          title: "Front Bathroom",
+          sub: "Front Bedroom \u2014 Logan's own bathroom, no one to split it with, so here's everything that needs doing each week.",
+          rotationPeople: ["Logan"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top",
+            "Sweep and Swiffer bathroom floor",
+            "Spray, scrub and wipe inside and outside of toilet",
+            "Take out trash",
+            "Spray, scrub and wipe down all shower surfaces (walls, ledges and base)"
+          ]
+        },
+        {
+          id: "master",
+          title: "Master Bathroom",
+          sub: "Master Bedroom \u2014 Blake & Manny rotate these 2 jobs each new week.",
+          rotationPeople: ["Blake", "Manny"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        }
+      ],
+      bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
     }
   };
 
