@@ -509,6 +509,7 @@
     "1937-101": {
       name: "Apartment 1937 #101",
       community: "The Traditions",
+      ra: "Jahari",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Jahari", "Ben", "Isaac L.", "Elijah", "Israel", "Isaac B."],
       roommates: [
@@ -560,6 +561,7 @@
     "1941-200": {
       name: "Apartment 1941 #200",
       community: "The Traditions",
+      ra: "Avery",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Avery", "Amanda", "Noelle", "Kenda", "Mattie", "Bella"],
       roommates: [
@@ -611,6 +613,7 @@
     "1945-100": {
       name: "Apartment 1945 #100",
       community: "The Traditions",
+      ra: "Keenan",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Keenan", "Daniel", "Dane", "Jeremiah", "Kaden"],
       roommates: [
@@ -660,6 +663,7 @@
     "1949-100": {
       name: "Apartment 1949 #100",
       community: "The Traditions",
+      ra: "Ezra",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Ezra", "Ian", "Cage", "Lockwood", "Skyler", "Kevin"],
       roommates: [
@@ -711,6 +715,7 @@
     "1949-201": {
       name: "Apartment 1949 #201",
       community: "The Traditions",
+      ra: "Baylah",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Baylah", "Bella", "Lucy", "Moon", "Etni"],
       roommates: [
@@ -760,6 +765,7 @@
     "1953-101": {
       name: "Apartment 1953 #101",
       community: "The Traditions",
+      ra: "Gannon",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Gannon", "Nijel", "Seth", "Evan", "Ethan", "Matthew"],
       roommates: [
@@ -811,6 +817,7 @@
     "1953-301": {
       name: "Apartment 1953 #301",
       community: "The Traditions",
+      ra: "Destiny",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Destiny", "Kenadi", "Faith", "Karis", "Abby"],
       roommates: [
@@ -860,6 +867,7 @@
     "wind-drift": {
       name: "Wind Drift",
       community: "Seagate",
+      ra: "Maddy",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Viv", "Linnea", "Maddy", "Roxie"],
       roommates: [
@@ -944,6 +952,7 @@
     "sailfish": {
       name: "Sailfish",
       community: "Seagate",
+      ra: "Logan",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Logan", "Blake", "Manny"],
       roommates: [
@@ -992,6 +1001,7 @@
     "mariner": {
       name: "Mariner",
       community: "Seagate",
+      ra: "Scarlette",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Dylan", "Taylor", "Scarlette", "Ella"],
       roommates: [
@@ -1144,9 +1154,10 @@
     var sectionsHtml = groups.map(function (group) {
       var cards = group.slugs.map(function (slug) {
         var a = APARTMENTS[slug];
+        var raText = a.ra ? " \u2014 " + escapeHtml(a.ra) : "";
         return '<a class="apartment-card" href="/' + encodeURIComponent(slug) + '">' +
           "<h2>" + escapeHtml(a.name) + "</h2>" +
-          "<p>" + a.people.length + " roommates</p>" +
+          "<p>" + a.people.length + " roommates" + raText + "</p>" +
         "</a>";
       }).join("");
       return '<section class="community-section">' +
