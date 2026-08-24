@@ -277,6 +277,15 @@
     padding-top: 3px;
   }
 
+  .area-head-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .area-assignee { margin-left: 0; }
+
   .area-sub {
     margin: -2px 0 12px;
     font-size: 0.8rem;
@@ -859,16 +868,54 @@
       ],
       areas: [
         {
-          id: "common",
-          title: "Common Areas",
-          wide: true,
-          sub: "Kitchen, Living Room, Laundry Room & Patio \u2014 split into 4 jobs, one per person, balanced by effort so no one gets stuck with a heavy week while someone else gets an easy one. Rotates every time someone taps \u201cStart new week.\u201d",
+          id: "kitchen",
+          title: "Kitchen",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Kitchen is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
           rotationPeople: "all",
+          assignMode: "area",
           tasks: [
-            "Kitchen \u2014 dishes, counters & appliances: all dishes cleaned and put away; counters cleared, sprayed and wiped down with multi-surface cleaner; stove, refrigerator and microwave cleaned inside & out \u2014 multi-surface cleaner, then glass cleaner on appropriate surfaces",
-            "Floors \u2014 whole apartment: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads",
-            "Living Room & Patio: all personal items put away; furniture surfaces dusted with furniture polish and a cleaning cloth; patio tidy and free of clutter with no personal items stored in patio storage and no laundry hanging over the balcony or patio wall",
-            "Laundry Room & Trash: washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+            "Deep clean counters and sink",
+            "Wipe down appliances",
+            "Clean stove & microwave",
+            "Sweep & mop floor"
+          ]
+        },
+        {
+          id: "living",
+          title: "Living Room",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Living Room is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
+          rotationPeople: "all",
+          assignMode: "area",
+          tasks: [
+            "Pick up and put away personal items",
+            "Fluff & arrange couch pillows/blankets",
+            "Wipe down surfaces",
+            "Sweep & mop floor"
+          ]
+        },
+        {
+          id: "dining",
+          title: "Dining Room & Trash",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Dining Room & Trash is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
+          rotationPeople: "all",
+          assignMode: "area",
+          tasks: [
+            "Wipe down dining table and chairs",
+            "Remove trash and keep area clutter-free",
+            "Empty all trash (apt. & patio if needed)",
+            "Take trash & recycling to bins"
+          ]
+        },
+        {
+          id: "patio",
+          title: "Patio & Laundry Room",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Patio & Laundry Room is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
+          rotationPeople: "all",
+          assignMode: "area",
+          tasks: [
+            "Pick up and put away personal items (laundry room)",
+            "Sweep & mop patio floor",
+            "Clean patio furniture (if needed)"
           ]
         },
         {
@@ -1141,13 +1188,16 @@
     }).join("");
 
     var areasHtml = config.areas.map(function (area) {
+      var wholeArea = area.assignMode === "area";
       var tasksHtml = area.tasks.map(function (text, i) {
-        return '<li><label><input type="checkbox" data-key="' + area.id + "-" + i + '"><span class="task-text">' + escapeHtml(text) + '</span></label><span class="assignee" data-assignee>&nbsp;</span></li>';
+        var assigneeSpan = wholeArea ? "" : '<span class="assignee" data-assignee>&nbsp;</span>';
+        return '<li><label><input type="checkbox" data-key="' + area.id + "-" + i + '"><span class="task-text">' + escapeHtml(text) + '</span></label>' + assigneeSpan + '</li>';
       }).join("");
+      var areaAssigneeBadge = wholeArea ? '<span class="assignee area-assignee" data-area-assignee>&nbsp;</span>' : "";
       return '<div class="area-card' + (area.wide ? " wide" : "") + '" data-area="' + area.id + '">' +
         '<div class="area-head">' +
           "<h2>" + escapeHtml(area.title) + "</h2>" +
-          '<span class="area-frac" data-frac>0/' + area.tasks.length + "</span>" +
+          '<div class="area-head-right">' + areaAssigneeBadge + '<span class="area-frac" data-frac>0/' + area.tasks.length + "</span></div>" +
         "</div>" +
         '<p class="area-sub">' + escapeHtml(area.sub) + "</p>" +
         '<ul class="tasks">' + tasksHtml + "</ul>" +
@@ -1194,11 +1244,18 @@
   // ---------------------------------------------------------------------
   function initApp(slug, config) {
     var ALL_PEOPLE = config.people;
+    var areaModeCounter = 0;
     var AREAS = config.areas.map(function (area) {
-      return {
+      var entry = {
         id: area.id,
-        rotationPeople: area.rotationPeople === "all" ? ALL_PEOPLE : area.rotationPeople
+        rotationPeople: area.rotationPeople === "all" ? ALL_PEOPLE : area.rotationPeople,
+        assignMode: area.assignMode === "area" ? "area" : "task"
       };
+      if (entry.assignMode === "area") {
+        entry.areaIndex = areaModeCounter;
+        areaModeCounter++;
+      }
+      return entry;
     });
     var ALL_KEYS = [];
     config.areas.forEach(function (area) {
@@ -1223,10 +1280,22 @@
       });
     }
 
+    function renderWholeAreaAssignment(areaId, people, offset, areaIndex) {
+      var card = document.querySelector('.area-card[data-area="' + areaId + '"]');
+      if (!card) return;
+      var person = people[(offset + areaIndex) % people.length];
+      var badge = card.querySelector("[data-area-assignee]");
+      if (badge) badge.textContent = person;
+    }
+
     function renderAssignments() {
       var offset = state.rotationOffset || 0;
       AREAS.forEach(function (area) {
-        renderBathRotation(area.id, area.rotationPeople, offset);
+        if (area.assignMode === "area") {
+          renderWholeAreaAssignment(area.id, area.rotationPeople, offset, area.areaIndex);
+        } else {
+          renderBathRotation(area.id, area.rotationPeople, offset);
+        }
       });
     }
 
