@@ -6,3 +6,11 @@
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+
+# Every apartment gets a clean URL like /1953-101 — this rewrites any path
+# to index.html, which then reads the path itself to decide what to show.
+# Must come after the /api/* rule above so API calls aren't swallowed by it.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
