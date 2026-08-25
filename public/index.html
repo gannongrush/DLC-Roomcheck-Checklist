@@ -397,12 +397,22 @@
     transform: rotate(40deg);
   }
 
+  ul.tasks .task-body { display: block; }
   ul.tasks .task-text { padding-top: 1px; }
 
-  ul.tasks input[type="checkbox"]:checked ~ .task-text {
+  ul.tasks input[type="checkbox"]:checked ~ .task-body .task-text {
     color: var(--done-strike);
     text-decoration: line-through;
     text-decoration-thickness: 1.5px;
+  }
+
+  ul.tasks .checked-time {
+    display: block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 2px;
   }
 
   .status-banner {
@@ -1202,8 +1212,9 @@
     var areasHtml = config.areas.map(function (area) {
       var wholeArea = area.assignMode === "area";
       var tasksHtml = area.tasks.map(function (text, i) {
+        var key = area.id + "-" + i;
         var assigneeSpan = wholeArea ? "" : '<span class="assignee" data-assignee>&nbsp;</span>';
-        return '<li><label><input type="checkbox" data-key="' + area.id + "-" + i + '"><span class="task-text">' + escapeHtml(text) + '</span></label>' + assigneeSpan + '</li>';
+        return '<li><label><input type="checkbox" data-key="' + key + '"><span class="task-body"><span class="task-text">' + escapeHtml(text) + '</span><span class="checked-time" data-checked-time="' + key + '"></span></span></label>' + assigneeSpan + '</li>';
       }).join("");
       var areaAssigneeBadge = wholeArea ? '<span class="assignee area-assignee" data-area-assignee>&nbsp;</span>' : "";
       return '<div class="area-card' + (area.wide ? " wide" : "") + '" data-area="' + area.id + '">' +
@@ -1277,11 +1288,38 @@
     var API = "/api/state?apartment=" + encodeURIComponent(slug);
     var POLL_MS = 4000;
 
-    var state = { checked: {}, rotationOffset: 0, lastReset: null, updatedAt: null };
+    var state = { checked: {}, checkedAt: {}, rotationOffset: 0, lastReset: null, updatedAt: null };
     var saveTimer = null;
     var saving = false;
     var loaded = false;
     var pollTimer = null;
+
+    // Ensures state fetched from the server (which may pre-date the
+    // checkedAt field, or briefly omit it under an old cached function)
+    // always has a checked-timestamp map to read from.
+    function normalizeState(s) {
+      if (!s || typeof s !== "object") s = {};
+      if (!s.checked) s.checked = {};
+      if (!s.checkedAt) s.checkedAt = {};
+      return s;
+    }
+
+    function formatCheckedTime(iso) {
+      if (!iso) return "";
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+      var now = new Date();
+      var sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+      var time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+      return sameDay ? time : d.toLocaleDateString(undefined, { weekday: "short" }) + " " + time;
+    }
+
+    function updateCheckedTimeEl(key) {
+      var el = document.querySelector('[data-checked-time="' + key + '"]');
+      if (!el) return;
+      var iso = state.checkedAt[key];
+      el.textContent = (state.checked[key] && iso) ? "Checked " + formatCheckedTime(iso) : "";
+    }
 
     function renderBathRotation(areaId, people, offset) {
       var card = document.querySelector('.area-card[data-area="' + areaId + '"]');
@@ -1338,6 +1376,9 @@
       document.querySelectorAll("input[type=\"checkbox\"][data-key]").forEach(function (cb) {
         cb.checked = !!state.checked[cb.getAttribute("data-key")];
       });
+      document.querySelectorAll("[data-checked-time]").forEach(function (el) {
+        updateCheckedTimeEl(el.getAttribute("data-checked-time"));
+      });
       var lr = document.getElementById("lastReset");
       if (lr) lr.textContent = state.lastReset || "this week";
     }
@@ -1364,7 +1405,7 @@
     }
 
     function applyServerState(data) {
-      state = data;
+      state = normalizeState(data);
       applyStateToDom();
       renderAll();
       hideBanner("offlineNote");
@@ -1402,14 +1443,18 @@
     }
 
     var pendingPatch = {};
+    var pendingAtPatch = {};
 
-    function scheduleCheckboxSave(patch) {
+    function scheduleCheckboxSave(patch, atPatch) {
       Object.assign(pendingPatch, patch);
+      Object.assign(pendingAtPatch, atPatch);
       clearTimeout(saveTimer);
       saveTimer = setTimeout(function () {
         var toSend = pendingPatch;
+        var toSendAt = pendingAtPatch;
         pendingPatch = {};
-        doSave({ checkedPatch: toSend });
+        pendingAtPatch = {};
+        doSave({ checkedPatch: toSend, checkedAtPatch: toSendAt });
       }, 700);
     }
 
@@ -1426,7 +1471,7 @@
           return res.json();
         })
         .then(function (data) {
-          state = data;
+          state = normalizeState(data);
           saving = false;
           hideBanner("offlineNote");
         })
@@ -1443,11 +1488,16 @@
       if (t && t.matches('input[type="checkbox"][data-key]')) {
         if (!loaded) return;
         var key = t.getAttribute("data-key");
+        var nowIso = t.checked ? new Date().toISOString() : null;
         state.checked[key] = t.checked;
+        state.checkedAt[key] = nowIso;
+        updateCheckedTimeEl(key);
         renderProgress();
         var patch = {};
         patch[key] = t.checked;
-        scheduleCheckboxSave(patch);
+        var atPatch = {};
+        atPatch[key] = nowIso;
+        scheduleCheckboxSave(patch, atPatch);
       }
     });
 
@@ -1469,7 +1519,13 @@
 
     function doReset() {
       var clearPatch = {};
-      ALL_KEYS.forEach(function (k) { clearPatch[k] = false; state.checked[k] = false; });
+      var clearAtPatch = {};
+      ALL_KEYS.forEach(function (k) {
+        clearPatch[k] = false;
+        clearAtPatch[k] = null;
+        state.checked[k] = false;
+        state.checkedAt[k] = null;
+      });
       var newOffset = (state.rotationOffset || 0) + 1;
       var today = new Date();
       var label = today.toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -1480,7 +1536,8 @@
       clearTimeout(saveTimer);
       saveTimer = null;
       pendingPatch = {};
-      doSave({ checkedPatch: clearPatch, rotationOffset: newOffset, lastReset: label });
+      pendingAtPatch = {};
+      doSave({ checkedPatch: clearPatch, checkedAtPatch: clearAtPatch, rotationOffset: newOffset, lastReset: label });
     }
 
     if (resetBtn) {
