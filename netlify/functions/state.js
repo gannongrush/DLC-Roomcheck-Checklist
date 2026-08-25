@@ -1,9 +1,16 @@
 const { getStore } = require("@netlify/blobs");
 
-const KEY = "roomcheck-state";
+// The very first apartment this app was built for keeps its original,
+// un-suffixed storage key so none of its existing saved data moves or
+// resets when multi-apartment support was added. Every apartment added
+// after that gets its own key: "roomcheck-state-<slug>".
+const LEGACY_KEY = "roomcheck-state";
+const LEGACY_SLUG = "1953-101";
+const SLUG_PATTERN = /^[a-z0-9-]{1,64}$/;
 
 const DEFAULT_STATE = {
   checked: {},
+  checkedAt: {},
   rotationOffset: 0,
   lastReset: null,
   updatedAt: null
@@ -34,16 +41,35 @@ function getBlobsStore() {
   return getStore("roomcheck");
 }
 
+// Turns a ?apartment=<slug> query param into the Blobs key that
+// apartment's data lives under, or null if the slug is missing/invalid.
+function keyForApartment(rawSlug) {
+  const slug = (rawSlug || LEGACY_SLUG).toLowerCase();
+  if (slug === LEGACY_SLUG) return LEGACY_KEY;
+  if (!SLUG_PATTERN.test(slug)) return null;
+  return LEGACY_KEY + "-" + slug;
+}
+
 exports.handler = async (event) => {
   try {
+    const rawSlug = event.queryStringParameters && event.queryStringParameters.apartment;
+    const key = keyForApartment(rawSlug);
+    if (!key) {
+      return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "Invalid apartment" }) };
+    }
+
     const store = getBlobsStore();
 
     if (event.httpMethod === "GET") {
-      const data = await store.get(KEY, { type: "json" });
+      const data = await store.get(key, { type: "json" });
+      // Object.assign over DEFAULT_STATE so records saved before the
+      // checkedAt field existed still come back with an (empty) map
+      // instead of undefined.
+      const responseData = Object.assign({}, DEFAULT_STATE, data || {});
       return {
         statusCode: 200,
         headers: JSON_HEADERS,
-        body: JSON.stringify(data || DEFAULT_STATE)
+        body: JSON.stringify(responseData)
       };
     }
 
@@ -55,20 +81,22 @@ exports.handler = async (event) => {
         return { statusCode: 400, headers: JSON_HEADERS, body: JSON.stringify({ error: "Invalid JSON" }) };
       }
 
-      const current = (await store.get(KEY, { type: "json" })) || DEFAULT_STATE;
+      const current = Object.assign({}, DEFAULT_STATE, (await store.get(key, { type: "json" })) || {});
 
       // Merge per-checkbox so two people toggling different boxes at once
       // don't clobber each other's changes.
       const mergedChecked = Object.assign({}, current.checked, body.checkedPatch || {});
+      const mergedCheckedAt = Object.assign({}, current.checkedAt, body.checkedAtPatch || {});
 
       const merged = {
         checked: mergedChecked,
+        checkedAt: mergedCheckedAt,
         rotationOffset: typeof body.rotationOffset === "number" ? body.rotationOffset : current.rotationOffset,
         lastReset: body.lastReset !== undefined ? body.lastReset : current.lastReset,
         updatedAt: new Date().toISOString()
       };
 
-      await store.setJSON(KEY, merged);
+      await store.setJSON(key, merged);
 
       return {
         statusCode: 200,
