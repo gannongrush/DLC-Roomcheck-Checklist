@@ -24,7 +24,8 @@
     --warn-soft: #F6E7D6;
     --shadow: rgba(24, 33, 28, 0.08);
     --done-strike: #93A69C;
-    --surface-tint: color-mix(in srgb, var(--accent) 7%, var(--surface));
+    --surface-tint: color-mix(in srgb, var(--accent) 16%, var(--surface));
+    --border-tint: color-mix(in srgb, var(--accent) 30%, var(--border));
   }
 
   @media (prefers-color-scheme: dark) {
@@ -179,7 +180,7 @@
   .overall-progress {
     margin-top: 22px;
     background: var(--surface-tint);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-tint);
     border-radius: 14px;
     padding: 16px 18px;
     display: flex;
@@ -217,7 +218,7 @@
   }
   .roommate-chip {
     background: var(--surface-tint);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-tint);
     border-radius: 10px;
     padding: 8px 14px;
     font-size: 0.82rem;
@@ -248,9 +249,10 @@
 
   .area-card {
     background: var(--surface-tint);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-tint);
+    border-left: 3px solid var(--accent);
     border-radius: 16px;
-    padding: 18px 20px 16px;
+    padding: 18px 20px 16px 18px;
     box-shadow: 0 1px 3px var(--shadow);
   }
 
@@ -276,6 +278,15 @@
     white-space: nowrap;
     padding-top: 3px;
   }
+
+  .area-head-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .area-assignee { margin-left: 0; }
 
   .area-sub {
     margin: -2px 0 12px;
@@ -386,12 +397,22 @@
     transform: rotate(40deg);
   }
 
+  ul.tasks .task-body { display: block; }
   ul.tasks .task-text { padding-top: 1px; }
 
-  ul.tasks input[type="checkbox"]:checked ~ .task-text {
+  ul.tasks input[type="checkbox"]:checked ~ .task-body .task-text {
     color: var(--done-strike);
     text-decoration: line-through;
     text-decoration-thickness: 1.5px;
+  }
+
+  ul.tasks .checked-time {
+    display: block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 2px;
   }
 
   .status-banner {
@@ -436,13 +457,13 @@
   .community-title {
     font-family: "IBM Plex Mono", monospace;
     font-size: 0.76rem;
-    font-weight: 500;
+    font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: var(--text-muted);
+    color: var(--accent-strong);
     margin: 0;
     padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--accent);
   }
 
   .apartment-grid {
@@ -455,15 +476,16 @@
   .apartment-card {
     display: block;
     background: var(--surface-tint);
-    border: 1px solid var(--border);
+    border: 1px solid var(--border-tint);
+    border-left: 3px solid var(--accent);
     border-radius: 16px;
-    padding: 20px 22px;
+    padding: 20px 22px 20px 20px;
     text-decoration: none;
     color: var(--text);
     box-shadow: 0 1px 3px var(--shadow);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
   }
-  .apartment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px var(--shadow); }
+  .apartment-card:hover { transform: translateY(-2px); box-shadow: 0 4px 14px var(--shadow); border-left-color: var(--accent-strong); }
   .apartment-card h2 {
     font-family: "Fraunces", Georgia, serif;
     font-weight: 600;
@@ -497,15 +519,16 @@
   // rendering, sync, rotation) is driven by this config.
   // ---------------------------------------------------------------------
   var APARTMENTS = {
-    "1953-101": {
-      name: "Apartment 1953 #101",
+    "1937-101": {
+      name: "Apartment 1937 #101",
       community: "The Traditions",
+      ra: "Jahari",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
-      people: ["Gannon", "Nijel", "Seth", "Evan", "Ethan", "Matthew"],
+      people: ["Jahari", "Ben", "Isaac L.", "Elijah", "Israel", "Isaac B."],
       roommates: [
-        { room: "Front Bedroom", names: "Gannon" },
-        { room: "Middle Bedroom", names: "Nijel & Seth" },
-        { room: "Master Bedroom", names: "Evan, Ethan & Matthew" }
+        { room: "Front Bedroom", names: "Jahari" },
+        { room: "Middle Bedroom", names: "Ben & Isaac L." },
+        { room: "Master Bedroom", names: "Elijah, Israel & Isaac B." }
       ],
       areas: [
         {
@@ -526,8 +549,8 @@
         {
           id: "middle",
           title: "Middle Bathroom",
-          sub: "Shared by Front & Middle Bedrooms \u2014 Gannon, Nijel & Seth rotate these 3 jobs each new week.",
-          rotationPeople: ["Gannon", "Nijel", "Seth"],
+          sub: "Shared by Front & Middle Bedrooms \u2014 Jahari, Ben & Isaac L. rotate these 3 jobs each new week.",
+          rotationPeople: ["Jahari", "Ben", "Isaac L."],
           tasks: [
             "Spray and wipe down mirror, sink and counter top. Sweep and Swiffer bathroom floor",
             "Spray, scrub and wipe inside and outside of toilet. Take out trash",
@@ -537,8 +560,110 @@
         {
           id: "master",
           title: "Master Bathroom",
-          sub: "Master Bedroom \u2014 Evan, Ethan & Matthew rotate these 3 jobs each new week.",
-          rotationPeople: ["Evan", "Ethan", "Matthew"],
+          sub: "Master Bedroom \u2014 Elijah, Israel & Isaac B. rotate these 3 jobs each new week.",
+          rotationPeople: ["Elijah", "Israel", "Isaac B."],
+          tasks: [
+            "Spray and wipe down mirror, sinks and counter tops. Sweep and Swiffer all master bedroom and bathroom floors",
+            "Spray, scrub and wipe inside and outside of toilet. Take out all trash",
+            "Spray, scrub and wipe down all shower surfaces (walls, ledges and base)"
+          ]
+        }
+      ],
+      bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
+    },
+    "1941-200": {
+      name: "Apartment 1941 #200",
+      community: "The Traditions",
+      ra: "Avery",
+      tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
+      people: ["Avery", "Amanda", "Noelle", "Kenda", "Mattie", "Bella"],
+      roommates: [
+        { room: "Front Bedroom", names: "Avery" },
+        { room: "Middle Bedroom", names: "Amanda & Noelle" },
+        { room: "Master Bedroom", names: "Kenda, Mattie & Bella" }
+      ],
+      areas: [
+        {
+          id: "common",
+          title: "Common Areas",
+          wide: true,
+          sub: "Kitchen, Living Room, Laundry Room & Patio \u2014 matched to the DLC room-check form so nothing gets missed, and split into 6 jobs balanced by effort rather than by room, so no one gets stuck with a heavy week while someone else gets an easy one. Rotates every time someone taps \u201cStart new week.\u201d",
+          rotationPeople: "all",
+          tasks: [
+            "Kitchen \u2014 dishes & counters: all dishes cleaned and put away; counters cleared, sprayed and wiped down with multi-surface cleaner",
+            "Kitchen \u2014 appliances: stove, refrigerator and microwave cleaned inside & out \u2014 multi-surface cleaner, then glass cleaner on appropriate surfaces",
+            "Floors \u2014 whole apartment: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads",
+            "Living Room: all personal items put away; furniture surfaces dusted with furniture polish and a cleaning cloth",
+            "Patio: no personal items stored in patio storage; patio tidy and free of clutter; no laundry hanging over the balcony or patio wall",
+            "Laundry Room & Trash: washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+          ]
+        },
+        {
+          id: "middle",
+          title: "Middle Bathroom",
+          sub: "Shared by Front & Middle Bedrooms \u2014 Avery, Amanda & Noelle rotate these 3 jobs each new week.",
+          rotationPeople: ["Avery", "Amanda", "Noelle"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top. Sweep and Swiffer bathroom floor",
+            "Spray, scrub and wipe inside and outside of toilet. Take out trash",
+            "Spray, scrub and wipe down all shower surfaces (walls, ledges and base)"
+          ]
+        },
+        {
+          id: "master",
+          title: "Master Bathroom",
+          sub: "Master Bedroom \u2014 Kenda, Mattie & Bella rotate these 3 jobs each new week.",
+          rotationPeople: ["Kenda", "Mattie", "Bella"],
+          tasks: [
+            "Spray and wipe down mirror, sinks and counter tops. Sweep and Swiffer all master bedroom and bathroom floors",
+            "Spray, scrub and wipe inside and outside of toilet. Take out all trash",
+            "Spray, scrub and wipe down all shower surfaces (walls, ledges and base)"
+          ]
+        }
+      ],
+      bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
+    },
+    "1945-100": {
+      name: "Apartment 1945 #100",
+      community: "The Traditions",
+      ra: "Keenan",
+      tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
+      people: ["Keenan", "Daniel", "Dane", "Jeremiah", "Kaden"],
+      roommates: [
+        { room: "Front Bedroom", names: "Keenan" },
+        { room: "Middle Bedroom", names: "Daniel" },
+        { room: "Master Bedroom", names: "Dane, Jeremiah & Kaden" }
+      ],
+      areas: [
+        {
+          id: "common",
+          title: "Common Areas",
+          wide: true,
+          sub: "Kitchen, Living Room, Laundry Room & Patio \u2014 split into 5 jobs, one per person, balanced by effort so no one gets stuck with a heavy week while someone else gets an easy one. Rotates every time someone taps \u201cStart new week.\u201d",
+          rotationPeople: "all",
+          tasks: [
+            "Kitchen \u2014 dishes, counters & appliances: all dishes cleaned and put away; counters cleared, sprayed and wiped down with multi-surface cleaner; stove, refrigerator and microwave cleaned inside & out \u2014 multi-surface cleaner, then glass cleaner on appropriate surfaces",
+            "Floors \u2014 whole apartment: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads",
+            "Living Room: all personal items put away; furniture surfaces dusted with furniture polish and a cleaning cloth",
+            "Patio: no personal items stored in patio storage; patio tidy and free of clutter; no laundry hanging over the balcony or patio wall",
+            "Laundry Room & Trash: washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+          ]
+        },
+        {
+          id: "middle",
+          title: "Middle Bathroom",
+          sub: "Shared by Front & Middle Bedrooms \u2014 Keenan & Daniel rotate these 2 jobs each new week.",
+          rotationPeople: ["Keenan", "Daniel"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        },
+        {
+          id: "master",
+          title: "Master Bathroom",
+          sub: "Master Bedroom \u2014 Dane, Jeremiah & Kaden rotate these 3 jobs each new week.",
+          rotationPeople: ["Dane", "Jeremiah", "Kaden"],
           tasks: [
             "Spray and wipe down mirror, sinks and counter tops. Sweep and Swiffer all master bedroom and bathroom floors",
             "Spray, scrub and wipe inside and outside of toilet. Take out all trash",
@@ -551,6 +676,7 @@
     "1949-100": {
       name: "Apartment 1949 #100",
       community: "The Traditions",
+      ra: "Ezra",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Ezra", "Ian", "Cage", "Lockwood", "Skyler", "Kevin"],
       roommates: [
@@ -599,14 +725,66 @@
       ],
       bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
     },
-    "wind-drift": {
-      name: "Wind Drift",
-      community: "Seagate",
+    "1949-201": {
+      name: "Apartment 1949 #201",
+      community: "The Traditions",
+      ra: "Baylah",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
-      people: ["Viv", "Linnea", "Maddy", "Roxie"],
+      people: ["Baylah", "Bella", "Lucy", "Moon", "Etni"],
       roommates: [
-        { room: "Front Bedroom", names: "Viv & Linnea" },
-        { room: "Master Bedroom", names: "Maddy & Roxie" }
+        { room: "Front Bedroom", names: "Baylah" },
+        { room: "Middle Bedroom", names: "Bella & Lucy" },
+        { room: "Master Bedroom", names: "Moon & Etni" }
+      ],
+      areas: [
+        {
+          id: "common",
+          title: "Common Areas",
+          wide: true,
+          sub: "Kitchen, Living Room, Laundry Room & Patio \u2014 split into 5 jobs, one per person, balanced by effort so no one gets stuck with a heavy week while someone else gets an easy one. Rotates every time someone taps \u201cStart new week.\u201d",
+          rotationPeople: "all",
+          tasks: [
+            "Kitchen \u2014 dishes, counters & appliances: all dishes cleaned and put away; counters cleared, sprayed and wiped down with multi-surface cleaner; stove, refrigerator and microwave cleaned inside & out \u2014 multi-surface cleaner, then glass cleaner on appropriate surfaces",
+            "Floors \u2014 whole apartment: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads",
+            "Living Room: all personal items put away; furniture surfaces dusted with furniture polish and a cleaning cloth",
+            "Patio: no personal items stored in patio storage; patio tidy and free of clutter; no laundry hanging over the balcony or patio wall",
+            "Laundry Room & Trash: washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+          ]
+        },
+        {
+          id: "middle",
+          title: "Middle Bathroom",
+          sub: "Shared by Front & Middle Bedrooms \u2014 Baylah, Bella & Lucy rotate these 3 jobs each new week.",
+          rotationPeople: ["Baylah", "Bella", "Lucy"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top. Sweep and Swiffer bathroom floor",
+            "Spray, scrub and wipe inside and outside of toilet. Take out trash",
+            "Spray, scrub and wipe down all shower surfaces (walls, ledges and base)"
+          ]
+        },
+        {
+          id: "master",
+          title: "Master Bathroom",
+          sub: "Master Bedroom \u2014 Moon & Etni rotate these 2 jobs each new week.",
+          rotationPeople: ["Moon", "Etni"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        }
+      ],
+      bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
+    },
+    "1953-101": {
+      name: "Apartment 1953 #101",
+      community: "The Traditions",
+      ra: "Gannon",
+      tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
+      people: ["Gannon", "Nijel", "Seth", "Matthew"],
+      roommates: [
+        { room: "Front Bedroom", names: "Gannon" },
+        { room: "Middle Bedroom", names: "Nijel" },
+        { room: "Master Bedroom", names: "Seth & Matthew" }
       ],
       areas: [
         {
@@ -620,6 +798,138 @@
             "Floors \u2014 whole apartment: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads",
             "Living Room & Patio: all personal items put away; furniture surfaces dusted with furniture polish and a cleaning cloth; patio tidy and free of clutter with no personal items stored in patio storage and no laundry hanging over the balcony or patio wall",
             "Laundry Room & Trash: washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+          ]
+        },
+        {
+          id: "middle",
+          title: "Middle Bathroom",
+          sub: "Shared by Front & Middle Bedrooms \u2014 Gannon & Nijel rotate these 2 jobs each new week.",
+          rotationPeople: ["Gannon", "Nijel"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        },
+        {
+          id: "master",
+          title: "Master Bathroom",
+          sub: "Master Bedroom \u2014 Seth & Matthew rotate these 2 jobs each new week.",
+          rotationPeople: ["Seth", "Matthew"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        }
+      ],
+      bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
+    },
+    "1953-301": {
+      name: "Apartment 1953 #301",
+      community: "The Traditions",
+      tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
+      people: ["Kenadi", "Faith", "Karis", "Abby"],
+      roommates: [
+        { room: "Front Bedroom", names: "Vacant" },
+        { room: "Middle Bedroom", names: "Kenadi & Faith" },
+        { room: "Master Bedroom", names: "Karis & Abby" }
+      ],
+      areas: [
+        {
+          id: "common",
+          title: "Common Areas",
+          wide: true,
+          sub: "Kitchen, Living Room, Laundry Room & Patio \u2014 split into 4 jobs, one per person, balanced by effort so no one gets stuck with a heavy week while someone else gets an easy one. Rotates every time someone taps \u201cStart new week.\u201d",
+          rotationPeople: "all",
+          tasks: [
+            "Kitchen \u2014 dishes, counters & appliances: all dishes cleaned and put away; counters cleared, sprayed and wiped down with multi-surface cleaner; stove, refrigerator and microwave cleaned inside & out \u2014 multi-surface cleaner, then glass cleaner on appropriate surfaces",
+            "Floors \u2014 whole apartment: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads",
+            "Living Room & Patio: all personal items put away; furniture surfaces dusted with furniture polish and a cleaning cloth; patio tidy and free of clutter with no personal items stored in patio storage and no laundry hanging over the balcony or patio wall",
+            "Laundry Room & Trash: washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+          ]
+        },
+        {
+          id: "middle",
+          title: "Middle Bathroom",
+          sub: "Shared by Front & Middle Bedrooms \u2014 Front is vacant right now, so Kenadi & Faith rotate these 2 jobs each new week.",
+          rotationPeople: ["Kenadi", "Faith"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        },
+        {
+          id: "master",
+          title: "Master Bathroom",
+          sub: "Master Bedroom \u2014 Karis & Abby rotate these 2 jobs each new week.",
+          rotationPeople: ["Karis", "Abby"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        }
+      ],
+      bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
+    },
+    "wind-drift": {
+      name: "Wind Drift",
+      community: "Seagate",
+      ra: "Maddy",
+      tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
+      people: ["Viv", "Linnea", "Maddy", "Roxie"],
+      roommates: [
+        { room: "Front Bedroom", names: "Viv & Linnea" },
+        { room: "Master Bedroom", names: "Maddy & Roxie" }
+      ],
+      areas: [
+        {
+          id: "kitchen",
+          title: "Kitchen",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Kitchen is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
+          rotationPeople: "all",
+          assignMode: "area",
+          tasks: [
+            "Deep clean counters and sink",
+            "Wipe down appliances",
+            "Clean stove & microwave",
+            "Sweep & mop floor"
+          ]
+        },
+        {
+          id: "living",
+          title: "Living Room",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Living Room is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
+          rotationPeople: "all",
+          assignMode: "area",
+          tasks: [
+            "Pick up and put away personal items",
+            "Fluff & arrange couch pillows/blankets",
+            "Wipe down surfaces",
+            "Sweep & mop floor"
+          ]
+        },
+        {
+          id: "dining",
+          title: "Dining Room & Trash",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Dining Room & Trash is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
+          rotationPeople: "all",
+          assignMode: "area",
+          tasks: [
+            "Wipe down dining table and chairs",
+            "Remove trash and keep area clutter-free",
+            "Empty all trash (apt. & patio if needed)",
+            "Take trash & recycling to bins"
+          ]
+        },
+        {
+          id: "patio",
+          title: "Patio & Laundry Room",
+          sub: "Based on Maddy\u2019s Weekly Chore Rotation flyer \u2014 the whole Patio & Laundry Room is one person\u2019s job for the week. Rotates through Viv, Linnea, Maddy & Roxie automatically.",
+          rotationPeople: "all",
+          assignMode: "area",
+          tasks: [
+            "Pick up and put away personal items (laundry room)",
+            "Sweep & mop patio floor",
+            "Clean patio furniture (if needed)"
           ]
         },
         {
@@ -648,6 +958,7 @@
     "sailfish": {
       name: "Sailfish",
       community: "Seagate",
+      ra: "Logan",
       tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
       people: ["Logan", "Blake", "Manny"],
       roommates: [
@@ -685,6 +996,53 @@
           title: "Master Bathroom",
           sub: "Master Bedroom \u2014 Blake & Manny rotate these 2 jobs each new week.",
           rotationPeople: ["Blake", "Manny"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        }
+      ],
+      bedroomStandard: ["Make your bed", "Personal items put away", "Floor vacuumed and/or Swiffered", "Furniture surfaces dusted"]
+    },
+    "mariner": {
+      name: "Mariner",
+      community: "Seagate",
+      ra: "Scarlette",
+      tagline: "Shared checklist for the apartment. Check off what you\u2019ve handled \u2014 everyone sees it update within a few seconds.",
+      people: ["Dylan", "Taylor", "Scarlette", "Ella"],
+      roommates: [
+        { room: "Front Bedroom", names: "Dylan & Taylor" },
+        { room: "Master Bedroom", names: "Scarlette & Ella" }
+      ],
+      areas: [
+        {
+          id: "common",
+          title: "Common Areas",
+          wide: true,
+          sub: "Kitchen, Living Room, Laundry Room & Patio \u2014 split into 4 jobs, one per person, balanced by effort so no one gets stuck with a heavy week while someone else gets an easy one. Rotates every time someone taps \u201cStart new week.\u201d",
+          rotationPeople: "all",
+          tasks: [
+            "Kitchen \u2014 dishes, counters & appliances: all dishes cleaned and put away; counters cleared, sprayed and wiped down with multi-surface cleaner; stove, refrigerator and microwave cleaned inside & out \u2014 multi-surface cleaner, then glass cleaner on appropriate surfaces",
+            "Floors \u2014 whole apartment: vacuum the rug and empty the canister; Swiffer all hard-floor areas (kitchen, living room, hallway, laundry room) using the WetJet, cleaner and disposable pads",
+            "Living Room & Patio: all personal items put away; furniture surfaces dusted with furniture polish and a cleaning cloth; patio tidy and free of clutter with no personal items stored in patio storage and no laundry hanging over the balcony or patio wall",
+            "Laundry Room & Trash: washer and dryer wiped down (soap drips/residue), dryer lint filter emptied, kitchen trash taken out"
+          ]
+        },
+        {
+          id: "front",
+          title: "Front Bathroom",
+          sub: "Front Bedroom \u2014 Dylan & Taylor rotate these 2 jobs each new week.",
+          rotationPeople: ["Dylan", "Taylor"],
+          tasks: [
+            "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
+            "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
+          ]
+        },
+        {
+          id: "master",
+          title: "Master Bathroom",
+          sub: "Master Bedroom \u2014 Scarlette & Ella rotate these 2 jobs each new week.",
+          rotationPeople: ["Scarlette", "Ella"],
           tasks: [
             "Spray and wipe down mirror, sink and counter top; spray, scrub and wipe down all shower surfaces (walls, ledges and base)",
             "Spray, scrub and wipe inside and outside of toilet; take out trash; sweep and Swiffer bathroom floor"
@@ -802,9 +1160,10 @@
     var sectionsHtml = groups.map(function (group) {
       var cards = group.slugs.map(function (slug) {
         var a = APARTMENTS[slug];
+        var raText = a.ra ? " \u2014 " + escapeHtml(a.ra) : "";
         return '<a class="apartment-card" href="/' + encodeURIComponent(slug) + '">' +
           "<h2>" + escapeHtml(a.name) + "</h2>" +
-          "<p>" + a.people.length + " roommates</p>" +
+          "<p>" + a.people.length + " roommates" + raText + "</p>" +
         "</a>";
       }).join("");
       return '<section class="community-section">' +
@@ -846,13 +1205,17 @@
     }).join("");
 
     var areasHtml = config.areas.map(function (area) {
+      var wholeArea = area.assignMode === "area";
       var tasksHtml = area.tasks.map(function (text, i) {
-        return '<li><label><input type="checkbox" data-key="' + area.id + "-" + i + '"><span class="task-text">' + escapeHtml(text) + '</span></label><span class="assignee" data-assignee>&nbsp;</span></li>';
+        var key = area.id + "-" + i;
+        var assigneeSpan = wholeArea ? "" : '<span class="assignee" data-assignee>&nbsp;</span>';
+        return '<li><label><input type="checkbox" data-key="' + key + '"><span class="task-body"><span class="task-text">' + escapeHtml(text) + '</span><span class="checked-time" data-checked-time="' + key + '"></span></span></label>' + assigneeSpan + '</li>';
       }).join("");
+      var areaAssigneeBadge = wholeArea ? '<span class="assignee area-assignee" data-area-assignee>&nbsp;</span>' : "";
       return '<div class="area-card' + (area.wide ? " wide" : "") + '" data-area="' + area.id + '">' +
         '<div class="area-head">' +
           "<h2>" + escapeHtml(area.title) + "</h2>" +
-          '<span class="area-frac" data-frac>0/' + area.tasks.length + "</span>" +
+          '<div class="area-head-right">' + areaAssigneeBadge + '<span class="area-frac" data-frac>0/' + area.tasks.length + "</span></div>" +
         "</div>" +
         '<p class="area-sub">' + escapeHtml(area.sub) + "</p>" +
         '<ul class="tasks">' + tasksHtml + "</ul>" +
@@ -899,11 +1262,18 @@
   // ---------------------------------------------------------------------
   function initApp(slug, config) {
     var ALL_PEOPLE = config.people;
+    var areaModeCounter = 0;
     var AREAS = config.areas.map(function (area) {
-      return {
+      var entry = {
         id: area.id,
-        rotationPeople: area.rotationPeople === "all" ? ALL_PEOPLE : area.rotationPeople
+        rotationPeople: area.rotationPeople === "all" ? ALL_PEOPLE : area.rotationPeople,
+        assignMode: area.assignMode === "area" ? "area" : "task"
       };
+      if (entry.assignMode === "area") {
+        entry.areaIndex = areaModeCounter;
+        areaModeCounter++;
+      }
+      return entry;
     });
     var ALL_KEYS = [];
     config.areas.forEach(function (area) {
@@ -913,11 +1283,38 @@
     var API = "/api/state?apartment=" + encodeURIComponent(slug);
     var POLL_MS = 4000;
 
-    var state = { checked: {}, rotationOffset: 0, lastReset: null, updatedAt: null };
+    var state = { checked: {}, checkedAt: {}, rotationOffset: 0, lastReset: null, updatedAt: null };
     var saveTimer = null;
     var saving = false;
     var loaded = false;
     var pollTimer = null;
+
+    // Ensures state fetched from the server (which may pre-date the
+    // checkedAt field, or briefly omit it under an old cached function)
+    // always has a checked-timestamp map to read from.
+    function normalizeState(s) {
+      if (!s || typeof s !== "object") s = {};
+      if (!s.checked) s.checked = {};
+      if (!s.checkedAt) s.checkedAt = {};
+      return s;
+    }
+
+    function formatCheckedTime(iso) {
+      if (!iso) return "";
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return "";
+      var now = new Date();
+      var sameDay = d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+      var time = d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+      return sameDay ? time : d.toLocaleDateString(undefined, { weekday: "short" }) + " " + time;
+    }
+
+    function updateCheckedTimeEl(key) {
+      var el = document.querySelector('[data-checked-time="' + key + '"]');
+      if (!el) return;
+      var iso = state.checkedAt[key];
+      el.textContent = (state.checked[key] && iso) ? "Checked " + formatCheckedTime(iso) : "";
+    }
 
     function renderBathRotation(areaId, people, offset) {
       var card = document.querySelector('.area-card[data-area="' + areaId + '"]');
@@ -928,10 +1325,22 @@
       });
     }
 
+    function renderWholeAreaAssignment(areaId, people, offset, areaIndex) {
+      var card = document.querySelector('.area-card[data-area="' + areaId + '"]');
+      if (!card) return;
+      var person = people[(offset + areaIndex) % people.length];
+      var badge = card.querySelector("[data-area-assignee]");
+      if (badge) badge.textContent = person;
+    }
+
     function renderAssignments() {
       var offset = state.rotationOffset || 0;
       AREAS.forEach(function (area) {
-        renderBathRotation(area.id, area.rotationPeople, offset);
+        if (area.assignMode === "area") {
+          renderWholeAreaAssignment(area.id, area.rotationPeople, offset, area.areaIndex);
+        } else {
+          renderBathRotation(area.id, area.rotationPeople, offset);
+        }
       });
     }
 
@@ -962,6 +1371,9 @@
       document.querySelectorAll("input[type=\"checkbox\"][data-key]").forEach(function (cb) {
         cb.checked = !!state.checked[cb.getAttribute("data-key")];
       });
+      document.querySelectorAll("[data-checked-time]").forEach(function (el) {
+        updateCheckedTimeEl(el.getAttribute("data-checked-time"));
+      });
       var lr = document.getElementById("lastReset");
       if (lr) lr.textContent = state.lastReset || "this week";
     }
@@ -988,7 +1400,7 @@
     }
 
     function applyServerState(data) {
-      state = data;
+      state = normalizeState(data);
       applyStateToDom();
       renderAll();
       hideBanner("offlineNote");
@@ -1026,14 +1438,18 @@
     }
 
     var pendingPatch = {};
+    var pendingAtPatch = {};
 
-    function scheduleCheckboxSave(patch) {
+    function scheduleCheckboxSave(patch, atPatch) {
       Object.assign(pendingPatch, patch);
+      Object.assign(pendingAtPatch, atPatch);
       clearTimeout(saveTimer);
       saveTimer = setTimeout(function () {
         var toSend = pendingPatch;
+        var toSendAt = pendingAtPatch;
         pendingPatch = {};
-        doSave({ checkedPatch: toSend });
+        pendingAtPatch = {};
+        doSave({ checkedPatch: toSend, checkedAtPatch: toSendAt });
       }, 700);
     }
 
@@ -1050,7 +1466,7 @@
           return res.json();
         })
         .then(function (data) {
-          state = data;
+          state = normalizeState(data);
           saving = false;
           hideBanner("offlineNote");
         })
@@ -1067,11 +1483,16 @@
       if (t && t.matches('input[type="checkbox"][data-key]')) {
         if (!loaded) return;
         var key = t.getAttribute("data-key");
+        var nowIso = t.checked ? new Date().toISOString() : null;
         state.checked[key] = t.checked;
+        state.checkedAt[key] = nowIso;
+        updateCheckedTimeEl(key);
         renderProgress();
         var patch = {};
         patch[key] = t.checked;
-        scheduleCheckboxSave(patch);
+        var atPatch = {};
+        atPatch[key] = nowIso;
+        scheduleCheckboxSave(patch, atPatch);
       }
     });
 
@@ -1093,7 +1514,13 @@
 
     function doReset() {
       var clearPatch = {};
-      ALL_KEYS.forEach(function (k) { clearPatch[k] = false; state.checked[k] = false; });
+      var clearAtPatch = {};
+      ALL_KEYS.forEach(function (k) {
+        clearPatch[k] = false;
+        clearAtPatch[k] = null;
+        state.checked[k] = false;
+        state.checkedAt[k] = null;
+      });
       var newOffset = (state.rotationOffset || 0) + 1;
       var today = new Date();
       var label = today.toLocaleDateString(undefined, { month: "short", day: "numeric" });
@@ -1104,7 +1531,8 @@
       clearTimeout(saveTimer);
       saveTimer = null;
       pendingPatch = {};
-      doSave({ checkedPatch: clearPatch, rotationOffset: newOffset, lastReset: label });
+      pendingAtPatch = {};
+      doSave({ checkedPatch: clearPatch, checkedAtPatch: clearAtPatch, rotationOffset: newOffset, lastReset: label });
     }
 
     if (resetBtn) {
